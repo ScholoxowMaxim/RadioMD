@@ -1,9 +1,23 @@
 import 'package:flutter/material.dart';
 import '../data/stations_mock.dart';
 import '../domain/station.dart';
+import '../../../core/services/player_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final PlayerService playerService = PlayerService();
+
+  @override
+  void dispose() {
+    playerService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +35,17 @@ class HomeScreen extends StatelessWidget {
                 width: 50,
                 height: 50,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => 
+                errorBuilder: (context, error, stackTrace) =>
                     const Icon(Icons.radio, size: 50),
               ),
               title: Text(station.name),
               trailing: const Icon(Icons.play_arrow),
-              onTap: () {
-                // TODO: перейти к плееру
+              onTap: () async {
+                await playerService.play(station.streamUrl);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Playing ${station.name}')),
+                );
               },
             ),
           );
