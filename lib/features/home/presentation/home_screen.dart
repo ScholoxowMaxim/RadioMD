@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:radiomd/features/player/presentation/mini_player.dart';
 import '../data/stations_mock.dart';
 import '../domain/station.dart';
 import '../../../core/services/player_service.dart';
+import '../../player/presentation/player_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    playerService.dispose();
     super.dispose();
   }
 
@@ -41,16 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
               title: Text(station.name),
               trailing: const Icon(Icons.play_arrow),
               onTap: () async {
-                await playerService.play(station.streamUrl);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Playing ${station.name}')),
-                );
+                await PlayerService().play(station);
+                setState(() {});
               },
             ),
           );
         },
       ),
+      bottomNavigationBar: const MiniPlayer(),
     );
   }
 }
