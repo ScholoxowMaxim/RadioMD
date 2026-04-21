@@ -27,7 +27,7 @@
 
 ## Скриншоты
 
-![Главный экран](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Плеер](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Избранное](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  [Рекомендации](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png) 
+![Главный экран](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Плеер](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Избранное](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Рекомендации](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png) 
 
 ---
 
