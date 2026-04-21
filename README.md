@@ -27,11 +27,7 @@
 
 ## Скриншоты
 
-> Здесь можно разместить реальные скриншоты приложения
-
-| Главный экран | Плеер | Избранное |
-|---------------|-------|-----------|
-| ![Главный экран](docs/screenshots/home.png) | ![Плеер](docs/screenshots/player.png) | ![Избранное](docs/screenshots/favorites.png) |
+| ![Главный экран](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png) | ![Плеер](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png) | ![Избранное](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png) |
 
 ---
 
@@ -63,5 +59,5 @@
 ## Установка и запуск
 
 ```bash
-git clone https://github.com/your-username/radiomd.git
+git clone https://github.com/ScholoxowMaxim/RadioMD.git
 cd radiomd
