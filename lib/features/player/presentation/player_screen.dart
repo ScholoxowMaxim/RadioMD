@@ -17,6 +17,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
   @override
   void initState() {
     super.initState();
+    // Автоматически начинаем воспроизведение при открытии экрана
     _playerService.play(widget.station);
   }
 
@@ -27,11 +28,13 @@ class _PlayerScreenState extends State<PlayerScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          // Логотип/обложка радиостанции
           Image.network(
             widget.station.imageUrl,
             height: 200,
           ),
           const SizedBox(height: 40),
+          // Кнопка play/pause с отслеживанием состояния
           StreamBuilder(
             stream: _playerService.playerStateStream,
             builder: (context, snapshot) {

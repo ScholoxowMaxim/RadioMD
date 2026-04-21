@@ -3,7 +3,7 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 
 void main() {
-  runApp(const RadioMDApp());
+  runApp(const RadioMDApp()); // Точка входа в приложение
 }
 
 class RadioMDApp extends StatelessWidget {
@@ -12,9 +12,9 @@ class RadioMDApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      routerConfig: appRouter,
+      debugShowCheckedModeBanner: false, // Убираем баннер "DEBUG"
+      theme: AppTheme.lightTheme,         // Применяем светлую тему
+      routerConfig: appRouter,            // Подключаем маршрутизацию
     );
   }
 }
