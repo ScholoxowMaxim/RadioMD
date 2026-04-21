@@ -1,11 +1,12 @@
 import '../domain/station.dart';
 
+// Мок-данные для тестирования радиостанций (заглушка до подключения реального API)
 final List<Station> mockStations = [
   Station(
     id: '1',
     name: 'Европа Плюс',
-    streamUrl: 'https://ep256.hostingradio.ru:8052/europaplus256.mp3',
-    imageUrl: 'https://picsum.photos/200?1',
+    streamUrl: 'https://ep256.hostingradio.ru:8052/europaplus256.mp3', // URL аудиопотока
+    imageUrl: 'https://picsum.photos/200?1', // Временное изображение (заглушка)
   ),
   Station(
     id: '2',

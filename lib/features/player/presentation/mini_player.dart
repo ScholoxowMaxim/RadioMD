@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:radiomd/features/home/domain/station.dart';
 import '../../../core/services/player_service.dart';
 
-
 class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
 
@@ -15,11 +14,13 @@ class _MiniPlayerState extends State<MiniPlayer> {
 
   @override
   Widget build(BuildContext context) {
+    // Отслеживаем текущую воспроизводимую станцию
     return StreamBuilder<Station?>(
       stream: _playerService.stationStream,
       builder: (context, snapshot) {
         final station = snapshot.data;
 
+        // Если ничего не играет - не показываем мини-плеер
         if (station == null) return const SizedBox();
 
         return Container(
@@ -28,12 +29,14 @@ class _MiniPlayerState extends State<MiniPlayer> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
+              // Название текущей станции
               Expanded(
                 child: Text(
                   station.name,
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
+              // Кнопка play/pause с отслеживанием состояния плеера
               StreamBuilder(
                 stream: _playerService.playerStateStream,
                 builder: (context, _) {
