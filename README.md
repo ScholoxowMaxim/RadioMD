@@ -60,4 +60,4 @@
 
 ```bash
 git clone https://github.com/ScholoxowMaxim/RadioMD.git
-cd radiomd
+cd RadioMD
