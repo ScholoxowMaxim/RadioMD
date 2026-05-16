@@ -1,72 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/services/player_service.dart';
-import '../../../core/services/favorites_service.dart';
-import '../../home/domain/station.dart';
-import 'animated_play_button.dart';
+import 'package:radiomd/core/services/player_service.dart';
+import 'package:radiomd/core/services/favorites_service.dart';
+import 'package:radiomd/features/player/presentation/animated_play_button.dart';
 
-class PlayerScreen extends StatefulWidget {
-  final Station station;
+class FullPlayerScreen extends StatefulWidget {
   final FavoritesService favoritesService;
 
-  const PlayerScreen({
-    super.key,
-    required this.station,
-    required this.favoritesService,
-  });
+  const FullPlayerScreen({super.key, required this.favoritesService});
 
   @override
-  State<PlayerScreen> createState() => _PlayerScreenState();
+  State<FullPlayerScreen> createState() => _FullPlayerScreenState();
 }
 
-class _PlayerScreenState extends State<PlayerScreen> {
-  bool _isFavorite = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _isFavorite = widget.station.isFavorite;
-    
-    // Запускаем воспроизведение
-    final player = context.read<PlayerService>();
-    player.play(widget.station);
-  }
-
-  Future<void> _toggleFavorite() async {
-    final newState = await widget.favoritesService.toggleFavorite(widget.station.id);
-    setState(() {
-      _isFavorite = newState;
-      widget.station.isFavorite = newState;
-    });
-  }
-
+class _FullPlayerScreenState extends State<FullPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<PlayerService>(
       builder: (context, player, _) {
+        final station = player.currentStation;
+        if (station == null) return const SizedBox.shrink();
+
         return Scaffold(
           backgroundColor: Colors.black,
           body: SafeArea(
             child: Column(
               children: [
-                // Верхняя панель
+                // Верхняя панель с кнопкой назад
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
                       IconButton(
                         icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 32),
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context, true), // 👈 Возвращаем true при выходе
                       ),
                       const Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorite ? Colors.red : Colors.white,
-                          size: 28,
-                        ),
-                        onPressed: _toggleFavorite,
-                      ),
                     ],
                   ),
                 ),
@@ -91,7 +60,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: Image.network(
-                          widget.station.imageUrl,
+                          station.imageUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             color: Colors.grey[900],
@@ -103,14 +72,14 @@ class _PlayerScreenState extends State<PlayerScreen> {
                   ),
                 ),
 
-                // Название и кнопки
+                // Название и кнопки управления
                 Expanded(
                   flex: 2,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        widget.station.name,
+                        station.name,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -120,9 +89,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        player.currentStation?.id == widget.station.id && player.isPlaying
-                            ? 'Сейчас играет'
-                            : 'На паузе',
+                        player.isPlaying ? 'Сейчас играет' : 'На паузе',
                         style: TextStyle(color: Colors.grey[400], fontSize: 14),
                       ),
                       const SizedBox(height: 40),
@@ -131,22 +98,51 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          // Предыдущая
                           IconButton(
                             icon: const Icon(Icons.skip_previous, color: Colors.white, size: 40),
-                            onPressed: player.hasPrevious ? () => player.previous() : null,
+                            onPressed: player.hasPreviousStation ? () => player.previousStation() : null,
                           ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 20),
 
+                          // Кнопка избранного
+                          FutureBuilder<bool>(
+                            future: widget.favoritesService.isFavorite(station.id),
+                            builder: (context, snapshot) {
+                              final isFavorite = snapshot.data ?? false;
+                              return IconButton(
+                                icon: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  color: isFavorite ? Colors.red : Colors.white,
+                                  size: 32,
+                                ),
+                                onPressed: () async {
+                                  // Переключаем избранное
+                                  await widget.favoritesService.toggleFavorite(station.id);
+                                  // Обновляем локальный статус
+                                  setState(() {
+                                    station.isFavorite = !isFavorite;
+                                  });
+                                  // Обновляем в PlayerService
+                                  player.updateFavoriteStatus(station.id, !isFavorite);
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 20),
+
+                          // Play/Pause
                           AnimatedPlayButton(
                             isPlaying: player.isPlaying,
                             onPressed: () => player.togglePlayPause(),
                             size: 48,
                           ),
-                          const SizedBox(width: 30),
+                          const SizedBox(width: 20),
 
+                          // Следующая
                           IconButton(
                             icon: const Icon(Icons.skip_next, color: Colors.white, size: 40),
-                            onPressed: player.hasNext ? () => player.next() : null,
+                            onPressed: player.hasNextStation ? () => player.nextStation() : null,
                           ),
                         ],
                       ),

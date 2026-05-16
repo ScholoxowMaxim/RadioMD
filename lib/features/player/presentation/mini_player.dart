@@ -1,62 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:radiomd/features/home/domain/station.dart';
-import '../../../core/services/player_service.dart';
+import 'package:provider/provider.dart';
+import 'package:radiomd/core/services/player_service.dart';
+import 'package:radiomd/features/player/presentation/animated_play_button.dart';
 
-class MiniPlayer extends StatefulWidget {
-  const MiniPlayer({super.key});
+class MiniPlayer extends StatelessWidget {
+  final VoidCallback onTap;
 
-  @override
-  State<MiniPlayer> createState() => _MiniPlayerState();
-}
-
-class _MiniPlayerState extends State<MiniPlayer> {
-  final _playerService = PlayerService();
+  const MiniPlayer({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    // Отслеживаем текущую воспроизводимую станцию
-    return StreamBuilder<Station?>(
-      stream: _playerService.stationStream,
-      builder: (context, snapshot) {
-        final station = snapshot.data;
+    // Добавьте проверку наличия провайдера
+    try {
+      final player = context.watch<PlayerService>();
+      final station = player.currentStation;
 
-        // Если ничего не играет - не показываем мини-плеер
-        if (station == null) return const SizedBox();
+      if (station == null) return const SizedBox.shrink();
 
-        return Container(
-          height: 70,
-          color: Colors.grey[900],
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              // Название текущей станции
-              Expanded(
-                child: Text(
-                  station.name,
-                  style: const TextStyle(color: Colors.white),
+      return AnimatedContainer(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        height: 64,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.grey[900],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+                  child: Image.network(
+                    station.imageUrl,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.radio, color: Colors.white),
+                  ),
                 ),
-              ),
-              // Кнопка play/pause с отслеживанием состояния плеера
-              StreamBuilder(
-                stream: _playerService.playerStateStream,
-                builder: (context, _) {
-                  return IconButton(
-                    icon: Icon(
-                      _playerService.isPlaying
-                          ? Icons.pause
-                          : Icons.play_arrow,
-                      color: Colors.white,
-                    ),
-                    onPressed: () async {
-                      await _playerService.toggle();
-                    },
-                  );
-                },
-              )
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    station.name,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                AnimatedPlayButton(
+                  isPlaying: player.isPlaying,
+                  onPressed: () => player.togglePlayPause(),
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
           ),
-        );
-      },
-    );
+        ),
+      );
+    } catch (e) {
+      // Если провайдера нет, ничего не показываем
+      return const SizedBox.shrink();
+    }
   }
 }
