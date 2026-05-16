@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "231795136694",
+    "project_id": "radiomd-a3070",
+    "storage_bucket": "radiomd-a3070.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:231795136694:android:bf2c36111f511e7bf7ae17",
+        "android_client_info": {
+          "package_name": "com.example.radiomd"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "231795136694-r8pj29vclgqapmao84q8b1e8mh4so6df.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC51i6uRv17GDB2VbEbHOnhdHcXhJBgz18"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "231795136694-r8pj29vclgqapmao84q8b1e8mh4so6df.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "231795136694-he5n90ek1pf6clt4hd4rk8qirplg0ejm.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.radiomd"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
