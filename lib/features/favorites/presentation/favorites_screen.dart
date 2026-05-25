@@ -8,10 +8,10 @@ import 'package:radiomd/core/services/favorites_service.dart';
 
 class FavoritesScreen extends StatelessWidget {
   final Set<String> favoriteIds;
-  final VoidCallback? onFavoritesChanged; // Добавляем callback для обновления
+  final VoidCallback? onFavoritesChanged;
 
   const FavoritesScreen({
-    super.key, 
+    super.key,
     required this.favoriteIds,
     this.onFavoritesChanged,
   });
@@ -24,21 +24,16 @@ class FavoritesScreen extends StatelessWidget {
   void _openFullPlayer(BuildContext context, Station station) async {
     final player = context.read<PlayerService>();
     final favoritesService = FavoritesService();
-    
-    // Сначала запускаем станцию
+
     await player.play(station);
-    
-    // Открываем полный плеер
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => FullPlayerScreen(
-          favoritesService: favoritesService,
-        ),
+        builder: (_) => FullPlayerScreen(favoritesService: favoritesService),
       ),
     );
-    
-    // Если избранное изменилось, обновляем
+
     if (result == true && onFavoritesChanged != null) {
       onFavoritesChanged!();
     }
@@ -46,6 +41,11 @@ class FavoritesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtitleColor = isDark ? const Color.fromARGB(47, 255, 255, 255) : Colors.black54;
+    final cardColor = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05);
+
     final favoriteStations = mockStations
         .where((station) => favoriteIds.contains(station.id))
         .toList();
@@ -56,22 +56,15 @@ class FavoritesScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Избранное',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textColor),
             ),
             const SizedBox(height: 20),
             if (favoriteStations.isEmpty)
               Expanded(
                 child: Center(
-                  child: Text(
-                    'Нет избранных станций',
-                    style: TextStyle(color: Colors.white.withOpacity(0.5)),
-                  ),
+                  child: Text('Нет избранных станций', style: TextStyle(color: subtitleColor)),
                 ),
               )
             else
@@ -84,51 +77,46 @@ class FavoritesScreen extends StatelessWidget {
                       builder: (context, player, _) {
                         final isCurrentStation = player.currentStation?.id == station.id;
                         final isPlaying = isCurrentStation && player.isPlaying;
-                        
-                        return ListTile(
-                          leading: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              station.imageUrl,
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => const Icon(
-                                Icons.radio,
-                                color: Colors.white,
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            leading: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                station.imageUrl,
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(Icons.radio, color: textColor),
                               ),
                             ),
-                          ),
-                          title: Text(
-                            station.name,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                          subtitle: isCurrentStation
-                              ? Text(
-                                  isPlaying ? 'Сейчас играет' : 'На паузе',
-                                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                                )
-                              : null,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(
-                                  isPlaying ? Icons.pause : Icons.play_arrow,
-                                  color: Colors.white,
+                            title: Text(station.name, style: TextStyle(color: textColor)),
+                            subtitle: isCurrentStation
+                                ? Text(
+                                    isPlaying ? 'Сейчас играет' : 'На паузе',
+                                    style: TextStyle(color: subtitleColor, fontSize: 12),
+                                  )
+                                : null,
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: textColor),
+                                  onPressed: () => _playStation(context, station),
                                 ),
-                                onPressed: () => _playStation(context, station),
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.playlist_play,
-                                  color: Colors.white,
+                                IconButton(
+                                  icon: Icon(Icons.playlist_play, color: textColor),
+                                  onPressed: () => _openFullPlayer(context, station),
                                 ),
-                                onPressed: () => _openFullPlayer(context, station),
-                              ),
-                            ],
+                              ],
+                            ),
+                            onTap: () => _openFullPlayer(context, station),
                           ),
-                          onTap: () => _openFullPlayer(context, station),
                         );
                       },
                     );
