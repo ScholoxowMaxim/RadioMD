@@ -71,8 +71,8 @@ class _LoginScreenState extends State<LoginScreen> {
             // Кнопка Google
             ElevatedButton.icon(
               onPressed: _handleGoogleSignIn,
-              icon: Image.network(
-                'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
+              icon: Image.asset(
+                'assets/google.png',
                 height: 24,
               ),
               label: const Text('Войти через Google'),
