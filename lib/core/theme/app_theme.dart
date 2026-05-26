@@ -1,20 +1,23 @@
-// Импорт пакета Flutter Material Design для работы с темами
 import 'package:flutter/material.dart';
 
-// Класс для хранения и настройки тем приложения
 class AppTheme {
-  // Статическое поле с настройками светлой темы
-  static ThemeData lightTheme = ThemeData(
-    // Использовать Material Design 3 (Material You)
-    useMaterial3: true,
-    
-    // Устанавливаем светлую цветовую схему
+  // Светлая тема
+  static final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
-    
-    // Генерация цветовой схемы на основе базового цвета
-    colorScheme: ColorScheme.fromSeed(
-      // Базовый (основной) цвет для генерации всей палитры
-      seedColor: Colors.deepPurple,
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black,
+    ),
+  );
+
+  // Тёмная тема (как у тебя сейчас в приложении)
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: Colors.black,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
     ),
   );
 }

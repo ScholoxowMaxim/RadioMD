@@ -8,18 +8,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'core/services/player_service.dart';
+import 'core/services/theme_service.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Загружаем .env файл
   await dotenv.load(fileName: ".env");
 
-  // Получаем общие настройки
   final projectId = dotenv.env['FIREBASE_PROJECT_ID']!;
   final storageBucket = dotenv.env['FIREBASE_WEB_STORAGE_BUCKET']!;
 
-  // Определяем платформу и подставляем нужные ключи
   FirebaseOptions options;
   if (kIsWeb) {
     options = FirebaseOptions(
@@ -78,9 +76,16 @@ void main() async {
     }
   }
 
+  // 1. Сначала Firebase
+    // 1. Сначала Firebase
   await Firebase.initializeApp(options: options);
 
+  // 2. Запуск приложения
   runApp(const RadioMDApp());
+
+  // 3. Уведомления после запуска (Activity готова)
+  final notificationService = NotificationService();
+  notificationService.initialize();
 }
 
 class RadioMDApp extends StatefulWidget {
@@ -93,6 +98,7 @@ class RadioMDApp extends StatefulWidget {
 class _RadioMDAppState extends State<RadioMDApp> {
   late GoRouter _router;
   final PlayerService _playerService = PlayerService();
+  final ThemeService _themeService = ThemeService();
 
   @override
   void initState() {
@@ -105,12 +111,21 @@ class _RadioMDAppState extends State<RadioMDApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => _playerService,
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        routerConfig: _router,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => _playerService),
+        ChangeNotifierProvider(create: (_) => _themeService)
+      ],
+      child: Consumer<ThemeService>(
+        builder: (context, themeService, _) {
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeService.themeMode,
+            routerConfig: _router,
+          );
+        },
       ),
     );
   }
