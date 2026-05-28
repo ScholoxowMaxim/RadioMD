@@ -5,8 +5,8 @@ Future<AudioPlayerHandler> initAudioService() async {
   return await AudioService.init(
     builder: () => AudioPlayerHandler(),
     config: const AudioServiceConfig(
-      androidNotificationChannelId: 'radiomd_audio',
-      androidNotificationChannelName: 'RadioMD',
+      androidNotificationChannelId: 'com.radiomd.radiomd2.channel.audio',
+      androidNotificationChannelName: 'RadioMD Audio Playback',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
     ),
@@ -19,41 +19,16 @@ class AudioPlayerHandler extends BaseAudioHandler {
   AudioPlayerHandler() {
     _player.playbackEventStream.map(_transformEvent).pipe(playbackState);
 
-    _player.positionStream.listen((position) {
-      if (position != null) {
-        playbackState.add(playbackState.value.copyWith(
-          updatePosition: position,
-        ));
+    // Listen to changes in the current media item and update the player
+    mediaItem.listen((item) {
+      if (item != null) {
+        _player.setUrl(item.id);
       }
     });
   }
 
-PlaybackState _transformEvent(PlaybackEvent event) {
-  return PlaybackState(
-    controls: [
-      MediaControl.skipToPrevious,
-      if (_player.playing) MediaControl.pause else MediaControl.play,
-      MediaControl.stop,
-      MediaControl.skipToNext,
-    ],
-    systemActions: const {MediaAction.seek},
-    processingState: {
-      ProcessingState.idle: AudioProcessingState.idle,
-      ProcessingState.loading: AudioProcessingState.loading,
-      ProcessingState.buffering: AudioProcessingState.buffering,
-      ProcessingState.ready: AudioProcessingState.ready,
-      ProcessingState.completed: AudioProcessingState.completed,
-    }[_player.processingState]!,
-    playing: _player.playing,
-  );
-}
-
   @override
   Future<void> play() => _player.play();
-  Future<void> setMediaItem(MediaItem item) async {
-  mediaItem.add(item);
-  await _player.setUrl(item.id);
-}
 
   @override
   Future<void> pause() => _player.pause();
@@ -64,9 +39,35 @@ PlaybackState _transformEvent(PlaybackEvent event) {
   @override
   Future<void> seek(Duration position) => _player.seek(position);
 
-  @override
-  Future<void> skipToNext() async {}
+  PlaybackState _transformEvent(PlaybackEvent event) {
+    return PlaybackState(
+      controls: [
+        MediaControl.skipToPrevious,
+        if (_player.playing) MediaControl.pause else MediaControl.play,
+        MediaControl.stop,
+        MediaControl.skipToNext,
+      ],
+      systemActions: const {
+        MediaAction.seek,
+        MediaAction.playPause,
+      },
+      androidCompactActionIndices: const [0, 1, 3],
+      processingState: const {
+        ProcessingState.idle: AudioProcessingState.idle,
+        ProcessingState.loading: AudioProcessingState.loading,
+        ProcessingState.buffering: AudioProcessingState.buffering,
+        ProcessingState.ready: AudioProcessingState.ready,
+        ProcessingState.completed: AudioProcessingState.completed,
+      }[_player.processingState]!,
+      playing: _player.playing,
+      updatePosition: _player.position,
+      bufferedPosition: _player.bufferedPosition,
+      speed: _player.speed,
+      queueIndex: event.currentIndex,
+    );
+  }
 
-  @override
-  Future<void> skipToPrevious() async {}
+  Future<void> updateMediaItem(MediaItem item) async {
+    mediaItem.add(item);
+  }
 }

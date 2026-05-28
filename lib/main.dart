@@ -10,10 +10,14 @@ import 'core/router/app_router.dart';
 import 'core/services/player_service.dart';
 import 'core/services/theme_service.dart';
 import 'core/services/notification_service.dart';
+import 'core/services/audio_player_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  // Initialize Audio Service
+  final audioHandler = await initAudioService();
 
   final projectId = dotenv.env['FIREBASE_PROJECT_ID']!;
   final storageBucket = dotenv.env['FIREBASE_WEB_STORAGE_BUCKET']!;
@@ -77,11 +81,10 @@ void main() async {
   }
 
   // 1. Сначала Firebase
-    // 1. Сначала Firebase
   await Firebase.initializeApp(options: options);
 
   // 2. Запуск приложения
-  runApp(const RadioMDApp());
+  runApp(RadioMDApp(audioHandler: audioHandler));
 
   // 3. Уведомления после запуска (Activity готова)
   final notificationService = NotificationService();
@@ -89,7 +92,8 @@ void main() async {
 }
 
 class RadioMDApp extends StatefulWidget {
-  const RadioMDApp({super.key});
+  final AudioPlayerHandler audioHandler;
+  const RadioMDApp({super.key, required this.audioHandler});
 
   @override
   State<RadioMDApp> createState() => _RadioMDAppState();
@@ -97,12 +101,13 @@ class RadioMDApp extends StatefulWidget {
 
 class _RadioMDAppState extends State<RadioMDApp> {
   late GoRouter _router;
-  final PlayerService _playerService = PlayerService();
+  late PlayerService _playerService;
   final ThemeService _themeService = ThemeService();
 
   @override
   void initState() {
     super.initState();
+    _playerService = PlayerService(widget.audioHandler);
     _router = createRouter(FirebaseAuth.instance.currentUser);
     FirebaseAuth.instance.authStateChanges().listen((user) {
       setState(() => _router = createRouter(user));
