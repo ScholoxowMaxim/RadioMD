@@ -28,7 +28,6 @@ class NotificationService {
         iOS: iosSettings,
       ),
     );
-
     // Слушаем сообщения когда приложение открыто
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
