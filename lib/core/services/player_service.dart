@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class PlayerService extends ChangeNotifier {
+  
   final AudioPlayerHandler _audioHandler;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   
@@ -20,26 +21,26 @@ class PlayerService extends ChangeNotifier {
   Set<String> get favoriteIds => _favoriteIds;
 
   PlayerService(this._audioHandler) {
+      _audioHandler.onNext = nextStation;
+  _audioHandler.onPrevious = previousStation;
     _audioHandler.playbackState.listen((state) {
       _isPlaying = state.playing;
       notifyListeners();
     });
 
-    _audioHandler.mediaItem.listen((item) {
-      if (item != null && (_currentStation == null || _currentStation!.id != item.id)) {
-        final station = _allStations.firstWhere(
-          (s) => s.id == item.id,
-          orElse: () => Station(
-            id: item.id,
-            name: item.title ?? 'Unknown',
-            streamUrl: item.id,
-            imageUrl: item.artUri?.toString() ?? '',
-          ),
-        );
-        _currentStation = station;
-        notifyListeners();
-      }
-    });
+_audioHandler.mediaItem.listen((item) {
+
+  if (item == null) return;
+
+  final station = _allStations.firstWhere(
+    (s) => s.name == item.title,
+    orElse: () => _currentStation!,
+  );
+
+  _currentStation = station;
+
+  notifyListeners();
+});
     
     // Загружаем избранное при создании
     loadFavorites();
@@ -85,41 +86,61 @@ class PlayerService extends ChangeNotifier {
     }
   }
 
-  Future<void> play(Station station) async {
-    if (_currentStation?.id == station.id) {
-      togglePlayPause();
-      return;
-    }
+Future<void> play(Station station) async {
 
-    _currentStation = station;
+  // Если нажали на текущую станцию
+  if (_currentStation?.id == station.id) {
+    togglePlayPause();
+    return;
+  }
 
-    // Добавляем в историю
-    if (_historyIndex < _history.length - 1) {
-      _history.removeRange(_historyIndex + 1, _history.length);
-    }
-    _history.add(station);
-    _historyIndex = _history.length - 1;
+  // Сохраняем текущую станцию
+  _currentStation = station;
 
-    final mediaItem = MediaItem(
-      id: station.streamUrl,
-      album: 'RadioMD',
-      title: station.name,
-      artUri: Uri.parse(station.imageUrl),
+  // История
+  if (_historyIndex < _history.length - 1) {
+    _history.removeRange(
+      _historyIndex + 1,
+      _history.length,
     );
-
-    await _audioHandler.updateMediaItem(mediaItem);
-    await _audioHandler.play();
-
-    notifyListeners();
   }
 
-  void togglePlayPause() {
-    if (_isPlaying) {
-      _audioHandler.pause();
-    } else {
-      _audioHandler.play();
-    }
+  _history.add(station);
+  _historyIndex = _history.length - 1;
+
+  // ВАЖНО:
+  // тут должен быть station.id
+  final mediaItem = MediaItem(
+    id: station.id,
+    album: 'RadioMD',
+    title: station.name,
+    artUri: Uri.parse(station.imageUrl),
+  );
+
+  // Обновляем media item
+  await _audioHandler.updateMediaItem(
+    mediaItem,
+  );
+
+  await _audioHandler.playStation(
+    mediaItem,
+    station.streamUrl,
+  );
+
+  // Обновляем UI
+  notifyListeners();
+}
+
+void togglePlayPause() {
+
+  if (_isPlaying) {
+    _audioHandler.pause();
+  } else {
+    _audioHandler.play();
   }
+
+  notifyListeners();
+}
 
   void next() {
     if (hasNext) {
@@ -141,11 +162,23 @@ class PlayerService extends ChangeNotifier {
     _audioHandler.stop();
   }
 
-  void updateFavoriteStatus(String stationId, bool isFavorite) {
-    final station = _allStations.firstWhere((s) => s.id == stationId);
-    station.isFavorite = isFavorite;
-    notifyListeners();
+void updateFavoriteStatus(
+  String stationId,
+  bool isFavorite,
+) {
+  for (final station in _allStations) {
+    if (station.id == stationId) {
+      station.isFavorite = isFavorite;
+    }
   }
+
+  if (_currentStation?.id == stationId) {
+    _currentStation!.isFavorite =
+        isFavorite;
+  }
+
+  notifyListeners();
+}
 
   // ==================== МЕТОДЫ ДЛЯ ИЗБРАННОГО ====================
 

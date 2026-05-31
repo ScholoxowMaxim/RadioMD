@@ -15,31 +15,43 @@ class FavoritesService {
     return List<String>.from(doc.data()?['stationIds'] ?? []);
   }
 
-  Future<void> addToFavorites(String stationId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+Future<void> addToFavorites(
+    String stationId) async {
 
-    final favorites = await getFavoriteIds();
-    if (!favorites.contains(stationId)) {
-      favorites.add(stationId);
-      await _firestore.collection('favorites').doc(user.uid).set({
-        'stationIds': favorites,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    }
-  }
+  final user = _auth.currentUser;
 
-  Future<void> removeFromFavorites(String stationId) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+  if (user == null) return;
 
-    final favorites = await getFavoriteIds();
-    favorites.remove(stationId);
-    await _firestore.collection('favorites').doc(user.uid).set({
-      'stationIds': favorites,
-      'updatedAt': FieldValue.serverTimestamp(),
-    });
-  }
+  await _firestore
+      .collection('favorites')
+      .doc(user.uid)
+      .set({
+    'stationIds':
+        FieldValue.arrayUnion(
+            [stationId]),
+    'updatedAt':
+        FieldValue.serverTimestamp(),
+  }, SetOptions(merge: true));
+}
+
+Future<void> removeFromFavorites(
+    String stationId) async {
+
+  final user = _auth.currentUser;
+
+  if (user == null) return;
+
+  await _firestore
+      .collection('favorites')
+      .doc(user.uid)
+      .set({
+    'stationIds':
+        FieldValue.arrayRemove(
+            [stationId]),
+    'updatedAt':
+        FieldValue.serverTimestamp(),
+  }, SetOptions(merge: true));
+}
 
   Future<bool> isFavorite(String stationId) async {
     final favorites = await getFavoriteIds();

@@ -102,17 +102,32 @@ void _listenToFavoritesChanges() {
     }
   }
 
-  Future<void> _toggleFavorite(Station station) async {
-    final newState = await _favoritesService.toggleFavorite(station.id);
-    setState(() {
-      station.isFavorite = newState;
-      if (newState) {
-        _favoriteIds.add(station.id);
-      } else {
-        _favoriteIds.remove(station.id);
-      }
-    });
-  }
+Future<void> _toggleFavorite(
+    Station station,
+) async {
+
+  final newState =
+      await _favoritesService
+          .toggleFavorite(station.id);
+
+  final player =
+      context.read<PlayerService>();
+
+  setState(() {
+    station.isFavorite = newState;
+
+    if (newState) {
+      _favoriteIds.add(station.id);
+    } else {
+      _favoriteIds.remove(station.id);
+    }
+  });
+
+  player.updateFavoriteStatus(
+    station.id,
+    newState,
+  );
+}
 
   List<Station> get _filteredStations {
     if (_searchQuery.isEmpty) return mockStations;
@@ -128,21 +143,16 @@ void _listenToFavoritesChanges() {
 
 
 /// Открыть полный плеер
-  void _openFullPlayer() async {
-    // Ждем результат от FullPlayerScreen
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => FullPlayerScreen(favoritesService: _favoritesService),
+void _openFullPlayer() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => FullPlayerScreen(
+        favoritesService: _favoritesService,
       ),
-    );
-    
-    // Если вернулись с изменениями (добавили/удалили избранное)
-    if (result == true) {
-      // Перезагружаем список избранного
-      _loadFavorites();
-    }
-  }
+    ),
+  );
+}
 
   @override
 Widget build(BuildContext context) {
@@ -314,9 +324,12 @@ Widget build(BuildContext context) {
                                   const SizedBox(width: 16),
                                   Consumer<PlayerService>(
                                     builder: (context, player, _) {
-                                      final isCurrentStation = player.currentStation?.id == station.id;
+                                      final isCurrentStation = 
+                                      player.currentStation?.id == station.id;
                                       return Icon(
-                                        isCurrentStation && player.isPlaying ? Icons.pause : Icons.play_arrow,
+                                        isCurrentStation && player.isPlaying 
+                                        ? Icons.pause 
+                                        : Icons.play_arrow,
                                         color: textColor,
                                         size: 22,
                                       );

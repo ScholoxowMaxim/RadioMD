@@ -20,7 +20,7 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
       builder: (context, player, _) {
         final station = player.currentStation;
         if (station == null) return const SizedBox.shrink();
-
+        final isFavorite = station.isFavorite;
         return Scaffold(
           backgroundColor: Colors.black,
           body: SafeArea(
@@ -33,7 +33,7 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 32),
-                        onPressed: () => Navigator.pop(context, true), // 👈 Возвращаем true при выходе
+                        onPressed: () => Navigator.pop(context), // 👈 Возвращаем true при выходе
                       ),
                       const Spacer(),
                     ],
@@ -106,30 +106,34 @@ class _FullPlayerScreenState extends State<FullPlayerScreen> {
                           const SizedBox(width: 20),
 
                           // Кнопка избранного
-                          FutureBuilder<bool>(
-                            future: widget.favoritesService.isFavorite(station.id),
-                            builder: (context, snapshot) {
-                              final isFavorite = snapshot.data ?? false;
-                              return IconButton(
-                                icon: Icon(
-                                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                                  color: isFavorite ? Colors.red : Colors.white,
-                                  size: 32,
-                                ),
-                                onPressed: () async {
-                                  // Переключаем избранное
-                                  await widget.favoritesService.toggleFavorite(station.id);
-                                  // Обновляем локальный статус
-                                  setState(() {
-                                    station.isFavorite = !isFavorite;
-                                  });
-                                  // Обновляем в PlayerService
-                                  player.updateFavoriteStatus(station.id, !isFavorite);
-                                },
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 20),
+                          
+
+                          //IconButton(
+                          //  icon: Icon(
+                        //      isFavorite
+                      //            ? Icons.favorite
+                    //              : Icons.favorite_border,
+                  //            color: isFavorite
+                //                  ? Colors.red
+              //                    : Colors.white,
+            //                  size: 32,
+          //                  ),
+        //                    onPressed: () async {
+      //                      final newState =
+    //                              await widget.favoritesService
+  //                                    .toggleFavorite(station.id);
+//
+      //                        setState(() {
+    //                            station.isFavorite = newState;
+  //                            });
+//
+          //                    player.updateFavoriteStatus(
+        //                        station.id,
+      //                          newState,
+    //                          );
+  //                          },
+                          //),
+                          //const SizedBox(width: 20),
 
                           // Play/Pause
                           AnimatedPlayButton(
