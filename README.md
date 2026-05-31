@@ -1,3 +1,4 @@
+
 # 📻 RadioMD
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.24+-02569B?logo=flutter&logoColor=white)
@@ -8,9 +9,8 @@
 **RadioMD** — современное мобильное приложение для прослушивания интернет-радиостанций.  
 Приложение создано для удобного и стабильного прослушивания любимых станций: в фоновом режиме, с управлением воспроизведением через экран блокировки и с быстрым доступом к избранному.
 
-<p align="center">
-  <img src="https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png" alt="RadioMD Preview" width="200"/>
-</p>
+<img width="1254" height="1254" alt="icon" src="https://github.com/user-attachments/assets/a28d2488-e9a0-4f70-bcfb-50f9feb20501" />
+
 
 ---
 
@@ -27,7 +27,11 @@
 
 ## Скриншоты
 
-![Главный экран](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Плеер](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Избранное](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png)  ![Рекомендации](https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png) 
+
+<img width="363" height="800" alt="photo_5253809489637480597_x" src="https://github.com/user-attachments/assets/8209abf9-3f6c-4a40-90b1-73e66774237e" />  <img width="393" height="842" alt="photo_5253809489637480605_y" src="https://github.com/user-attachments/assets/73443963-6038-4fde-b8ef-9c6c5284bb50" /><img width="386" height="837" alt="photo_5253809489637480602_y" src="https://github.com/user-attachments/assets/8e392eb1-85dc-4924-b87a-6b99c64cf51f" />
+<img width="386" height="822" alt="photo_5253809489637480600_y" src="https://github.com/user-attachments/assets/486d7448-a8a5-416a-b3f2-74b7276d9e15" />
+
+
 
 ---
 
