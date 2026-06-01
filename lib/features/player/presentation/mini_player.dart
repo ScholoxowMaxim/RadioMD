@@ -2,31 +2,149 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:radiomd/core/services/player_service.dart';
 import 'package:radiomd/features/player/presentation/animated_play_button.dart';
+import 'package:radiomd/features/player/presentation/full_player_screen.dart';
+import 'package:radiomd/core/services/favorites_service.dart';
 
-class MiniPlayer extends StatelessWidget {
+class MiniPlayer extends StatefulWidget {
   final VoidCallback onTap;
 
   const MiniPlayer({super.key, required this.onTap});
 
   @override
+  State<MiniPlayer> createState() => _MiniPlayerState();
+}
+
+class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _slideAnimation;
+  double _dragOffset = 0;
+  bool _isClosing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _slideAnimation = Tween<double>(
+      begin: 0,
+      end: 1.5,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _closeMiniPlayer(PlayerService player) {
+    if (_isClosing) return;
+    _isClosing = true;
+    
+    _animationController.forward().then((_) {
+      player.stop();
+      player.clearCurrentStation();
+      _isClosing = false;
+      _dragOffset = 0;
+      _animationController.reset();
+      if (mounted) setState(() {});
+    });
+  }
+
+  void _openFullPlayer(PlayerService player) {
+    if (_isClosing) return;
+    
+    final station = player.currentStation;
+    if (station == null) return;
+    
+    // Открываем полноэкранный плеер
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FullPlayerScreen(
+          favoritesService: FavoritesService(),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Добавьте проверку наличия провайдера
     try {
       final player = context.watch<PlayerService>();
       final station = player.currentStation;
 
-      if (station == null) return const SizedBox.shrink();
+      if (station == null || _isClosing) return const SizedBox.shrink();
 
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-        height: 64,
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final backgroundColor = isDark ? Colors.grey[900] : Colors.grey[200];
+      final textColor = isDark ? Colors.white : Colors.black87;
+
+      return AnimatedBuilder(
+        animation: _slideAnimation,
+        builder: (context, child) {
+          final opacity = (1 - (_dragOffset / 150)).clamp(0.0, 1.0);
+          
+          return Transform.translate(
+            offset: Offset(0, _dragOffset + _slideAnimation.value * 80),
+            child: Opacity(
+              opacity: opacity,
+              child: child,
+            ),
+          );
+        },
         child: GestureDetector(
-          onTap: onTap,
+          onVerticalDragDown: (_) {
+            _dragOffset = 0;
+            _animationController.stop();
+          },
+          onVerticalDragUpdate: (details) {
+            // Свайп вниз - закрытие
+            if (details.delta.dy > 0) {
+              _dragOffset += details.delta.dy;
+              if (_dragOffset > 200) {
+                _closeMiniPlayer(player);
+              } else {
+                setState(() {});
+              }
+            }
+            // Свайп вверх - открытие полноэкранного плеера
+            else if (details.delta.dy < 0) {
+              _dragOffset += details.delta.dy; // отрицательное значение
+              if (_dragOffset < -100) {
+                _openFullPlayer(player);
+                _dragOffset = 0;
+              } else {
+                setState(() {});
+              }
+            }
+          },
+          onVerticalDragEnd: (details) {
+            // Закрытие при свайпе вниз
+            if (_dragOffset > 80) {
+              _closeMiniPlayer(player);
+            } 
+            // Открытие при свайпе вверх
+            else if (_dragOffset < -50) {
+              _openFullPlayer(player);
+              _dragOffset = 0;
+            }
+            else {
+              setState(() {
+                _dragOffset = 0;
+              });
+            }
+          },
+          onTap: widget.onTap,
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.grey[900],
+              color: backgroundColor,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -38,14 +156,14 @@ class MiniPlayer extends StatelessWidget {
                     width: 56,
                     height: 56,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.radio, color: Colors.white),
+                    errorBuilder: (_, __, ___) => Icon(Icons.radio, color: textColor),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     station.name,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -55,13 +173,19 @@ class MiniPlayer extends StatelessWidget {
                   onPressed: () => player.togglePlayPause(),
                 ),
                 const SizedBox(width: 8),
+                // Добавляем маленькую иконку-подсказку для свайпа вверх
+                Icon(
+                  Icons.drag_handle,
+                  color: textColor.withOpacity(0.5),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
               ],
             ),
           ),
         ),
       );
     } catch (e) {
-      // Если провайдера нет, ничего не показываем
       return const SizedBox.shrink();
     }
   }

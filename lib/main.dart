@@ -104,15 +104,28 @@ class _RadioMDAppState extends State<RadioMDApp> {
   late PlayerService _playerService;
   final ThemeService _themeService = ThemeService();
 
-  @override
-  void initState() {
-    super.initState();
-    _playerService = PlayerService(widget.audioHandler);
-    _router = createRouter(FirebaseAuth.instance.currentUser);
-    FirebaseAuth.instance.authStateChanges().listen((user) {
-      setState(() => _router = createRouter(user));
-    });
-  }
+@override
+void initState() {
+  super.initState();
+  _playerService = PlayerService(widget.audioHandler);
+  _router = createRouter(FirebaseAuth.instance.currentUser);
+  
+  // Слушаем изменения пользователя с защитой от дублирования
+  String? lastUserId;
+  FirebaseAuth.instance.authStateChanges().listen((user) {
+    final userId = user?.uid;
+    
+    // Защита от дублирования
+    if (lastUserId == userId) return;
+    lastUserId = userId;
+    
+    print('Смена пользователя в main.dart: ${user?.uid ?? "null"}');
+    setState(() => _router = createRouter(user));
+    
+    // PlayerService сам обрабатывает загрузку через свой слушатель
+    // Не нужно вызывать reloadRecentStationsForCurrentUser() здесь
+  });
+}
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +138,7 @@ class _RadioMDAppState extends State<RadioMDApp> {
         builder: (context, themeService, _) {
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
+            title: 'RadioMD',
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeService.themeMode,

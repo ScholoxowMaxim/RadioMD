@@ -14,6 +14,11 @@ class AnimatedPlayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // В тёмной теме - белый, в светлой - чёрный (для контраста)
+    final iconColor = isDark ? Colors.white : Colors.black;
+    final overlayColor = iconColor;
+
     return GestureDetector(
       onTap: onPressed,
       child: AnimatedContainer(
@@ -23,7 +28,7 @@ class AnimatedPlayButton extends StatelessWidget {
         height: size + 8,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withOpacity(isPlaying ? 0.2 : 0.1),
+          color: overlayColor.withOpacity(isPlaying ? 0.2 : 0.1),
         ),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
@@ -38,7 +43,7 @@ class AnimatedPlayButton extends StatelessWidget {
           child: Icon(
             isPlaying ? Icons.pause : Icons.play_arrow,
             key: ValueKey(isPlaying),
-            color: Colors.white,
+            color: iconColor,
             size: size,
           ),
         ),

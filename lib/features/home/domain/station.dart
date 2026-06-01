@@ -1,15 +1,23 @@
 class Station {
-  final String id;           // Уникальный идентификатор станции
-  final String name;         // Название радиостанции
-  final String streamUrl;    // URL для аудиопотока
-  final String imageUrl;     // URL логотипа/обложки
-  bool isFavorite;           // Статус избранного (может меняться)
+  final String id;
+  final String name;
+  final String streamUrl;
+  final String imageUrl;
+  final String genre;
+  final String description;
+  final bool isHidden;  // Добавляем поле
+  bool isFavorite;
+  int listenCount;
 
   Station({
     required this.id,
     required this.name,
     required this.streamUrl,
     required this.imageUrl,
-    this.isFavorite = false,  // По умолчанию станция не в избранном
+    this.genre = 'pop',
+    this.description = '',
+    this.isHidden = false,  // По умолчанию false
+    this.isFavorite = false,
+    this.listenCount = 0,
   });
 }

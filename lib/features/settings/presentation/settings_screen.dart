@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/theme_service.dart';
+import '../../../core/services/player_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -82,9 +83,13 @@ class SettingsScreen extends StatelessWidget {
                               child: const Text('Отмена'),
                             ),
                             TextButton(
-                              onPressed: () {
+                              onPressed: () async {
+                                // Очищаем историю текущего пользователя
+                                final player = context.read<PlayerService>();
+                                await player.clearRecentStationsForUser();
+                                
                                 Navigator.pop(ctx);
-                                FirebaseAuth.instance.signOut();
+                                await FirebaseAuth.instance.signOut();
                               },
                               child: const Text('Выйти', style: TextStyle(color: Colors.red)),
                             ),
@@ -100,7 +105,7 @@ class SettingsScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
-                  ),
+                ),
               ],
             ),
           );
