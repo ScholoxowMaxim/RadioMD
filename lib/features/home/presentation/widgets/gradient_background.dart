@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:provider/provider.dart';
 import 'package:radiomd/core/services/player_service.dart';
+import 'dart:math';
 
+/// GradientBackground - фон с красивым градиентом на основе названия станции
+/// Работает на всех устройствах без исключений
 class GradientBackground extends StatefulWidget {
   final Widget child;
   const GradientBackground({super.key, required this.child});
@@ -12,94 +14,71 @@ class GradientBackground extends StatefulWidget {
 }
 
 class _GradientBackgroundState extends State<GradientBackground> {
-  // Храним текущий градиент
   Gradient _currentGradient = const LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF1A1A1A), Color(0xFF0D0D0D)],
   );
   
-  // Следим, чтобы не дёргать анализатор слишком часто
-  String _lastImageUrl = '';
+  String _lastStationId = '';
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _updateGradient();
-  }
-
-  Future<void> _updateGradient() async {
-    final player = context.read<PlayerService>();
-    final station = player.currentStation;
+  /// Генерация красивого градиента на основе ID и названия станции
+  Gradient _generateGradient(String stationId, String stationName) {
+    // Создаём хеш из ID станции
+    final hash = (stationId.hashCode).abs();
     
-    if (station == null || station.imageUrl.isEmpty) return;
-    if (_lastImageUrl == station.imageUrl) return;
+    // Генерируем основной цвет (яркий, насыщенный)
+    final r = ((hash >> 16) & 0xFF) / 255.0;
+    final g = ((hash >> 8) & 0xFF) / 255.0;
+    final b = (hash & 0xFF) / 255.0;
     
-    _lastImageUrl = station.imageUrl;
+    // Основной цвет (60% насыщенности для приятного вида)
+    final primaryColor = Color.fromRGBO(
+      100 + (r * 100).toInt(),
+      50 + (g * 80).toInt(),
+      80 + (b * 100).toInt(),
+      1.0,
+    );
     
-    try {
-      // Анализируем картинку, ищем яркие и темные цвета
-      final PaletteGenerator generator = await PaletteGenerator.fromImageProvider(
-        NetworkImage(station.imageUrl),
-        maximumColorCount: 5, // Ищем до 5 цветов
-      );
-
-      final List<Color> colors = [];
-      
-      // 1. Самый "живой" цвет (Vibrant)
-      if (generator.vibrantColor != null) {
-        colors.add(generator.vibrantColor!.color);
-      }
-      
-      // 2. Тёмный цвет для глубины
-      if (generator.darkVibrantColor != null) {
-        colors.add(generator.darkVibrantColor!.color);
-      } 
-      // Если нет темного, берем muted
-      else if (generator.darkMutedColor != null) {
-        colors.add(generator.darkMutedColor!.color);
-      }
-      
-      // 3. Если найдено мало цветов, добавляем красивые дефолтные оттенки
-      if (colors.length < 2) {
-        if (generator.lightVibrantColor != null) colors.add(generator.lightVibrantColor!.color);
-        if (generator.mutedColor != null) colors.add(generator.mutedColor!.color);
-      }
-      
-      // 4. Финальный градиент (минимум 2 цвета)
-      if (colors.length >= 2) {
-        setState(() {
-          _currentGradient = LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colors[0], colors[1]],
-          );
-        });
-      } else if (colors.isNotEmpty) {
-        // Если нашли только 1 цвет — создаем плавный переход к черному
-        setState(() {
-          _currentGradient = LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [colors.first, Colors.black87],
-          );
-        });
-      }
-    } catch (e) {
-      print('Ошибка генерации градиента: $e');
-    }
+    // Средний цвет (темнее)
+    final secondaryColor = Color.fromRGBO(
+      40 + (r * 60).toInt(),
+      20 + (g * 50).toInt(),
+      40 + (b * 60).toInt(),
+      1.0,
+    );
+    
+    // Тёмный цвет для глубины
+    final darkColor = Color.fromRGBO(
+      (r * 30).toInt(),
+      (g * 20).toInt(),
+      (b * 30).toInt(),
+      1.0,
+    );
+    
+    // Возвращаем красивый градиент
+    return LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [primaryColor, secondaryColor, darkColor],
+      stops: const [0.0, 0.5, 1.0],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Слушаем изменения станции
     return Consumer<PlayerService>(
       builder: (context, player, _) {
-        // Если станция поменялась — пересчитываем градиент
-        if (player.currentStation?.imageUrl != _lastImageUrl) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _updateGradient());
+        final station = player.currentStation;
+        
+        if (station != null && _lastStationId != station.id) {
+          _lastStationId = station.id;
+          _currentGradient = _generateGradient(station.id, station.name);
         }
-        return Container(
+        
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
           decoration: BoxDecoration(
             gradient: _currentGradient,
           ),

@@ -5,7 +5,7 @@ class Station {
   final String imageUrl;
   final String genre;
   final String description;
-  final bool isHidden;  // Добавляем поле
+  final bool isHidden;  
   bool isFavorite;
   int listenCount;
 
@@ -16,7 +16,7 @@ class Station {
     required this.imageUrl,
     this.genre = 'pop',
     this.description = '',
-    this.isHidden = false,  // По умолчанию false
+    this.isHidden = false,  
     this.isFavorite = false,
     this.listenCount = 0,
   });

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:radiomd/core/services/player_service.dart';
@@ -106,16 +107,10 @@ class RecentStations extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                station.imageUrl,
-                                width: 70,
-                                height: 70,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
-                                  Icons.radio,
-                                  color: textColor,
-                                  size: 30,
-                                ),
+                              child: CachedNetworkImage(
+                                imageUrl: station.imageUrl,
+                                placeholder: (context, url) => CircularProgressIndicator(),
+                                errorWidget: (context, url, error) => Icon(Icons.radio),
                               ),
                             ),
                             if (isCurrentStation && player.isPlaying)
