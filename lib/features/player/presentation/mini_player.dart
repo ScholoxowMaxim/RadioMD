@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:radiomd/core/services/player_service.dart';
 import 'package:radiomd/features/player/presentation/animated_play_button.dart';
 import 'package:radiomd/features/player/presentation/full_player_screen.dart';
-import 'package:radiomd/core/services/favorites_service.dart';
 
+/// Мини-плеер в нижней части экрана
+/// Поддерживает свайп вверх для открытия полноэкранного режима
+/// и свайп вниз для закрытия/остановки воспроизведения
 class MiniPlayer extends StatefulWidget {
   final VoidCallback onTap;
 
@@ -42,6 +44,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
     super.dispose();
   }
 
+  /// Закрытие мини-плеера с анимацией свайпа вниз
   void _closeMiniPlayer(PlayerService player) {
     if (_isClosing) return;
     _isClosing = true;
@@ -56,19 +59,18 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
     });
   }
 
+  /// Открытие полноэкранного плеера (без передачи favoritesService)
   void _openFullPlayer(PlayerService player) {
     if (_isClosing) return;
     
     final station = player.currentStation;
     if (station == null) return;
     
-    // Открываем полноэкранный плеер
+    // FullPlayerScreen больше не требует favoritesService
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => FullPlayerScreen(
-          favoritesService: FavoritesService(),
-        ),
+        builder: (_) => const FullPlayerScreen(), // Убрали favoritesService
       ),
     );
   }
@@ -115,7 +117,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
             }
             // Свайп вверх - открытие полноэкранного плеера
             else if (details.delta.dy < 0) {
-              _dragOffset += details.delta.dy; // отрицательное значение
+              _dragOffset += details.delta.dy;
               if (_dragOffset < -100) {
                 _openFullPlayer(player);
                 _dragOffset = 0;
@@ -173,7 +175,7 @@ class _MiniPlayerState extends State<MiniPlayer> with SingleTickerProviderStateM
                   onPressed: () => player.togglePlayPause(),
                 ),
                 const SizedBox(width: 8),
-                // Добавляем маленькую иконку-подсказку для свайпа вверх
+                // Иконка-подсказка для свайпа вверх
                 Icon(
                   Icons.drag_handle,
                   color: textColor.withOpacity(0.5),

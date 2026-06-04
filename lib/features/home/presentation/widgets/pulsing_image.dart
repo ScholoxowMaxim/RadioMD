@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:radiomd/core/services/player_service.dart';
@@ -73,13 +74,10 @@ class _PulsingImageState extends State<PulsingImage>
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(widget.borderRadius),
-                  child: Image.network(
-                    widget.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey[900],
-                      child: const Icon(Icons.radio, color: Colors.white, size: 80),
-                    ),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.imageUrl,
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Icon(Icons.radio),
                   ),
                 ),
               ),

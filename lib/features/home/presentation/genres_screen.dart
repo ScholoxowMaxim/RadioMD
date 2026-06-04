@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/player_service.dart';
@@ -154,13 +155,11 @@ class GenreDetailScreen extends StatelessWidget {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                station.imageUrl,
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(Icons.radio, color: textColor),
-                              ),
+                              child: CachedNetworkImage(
+                                imageUrl: station.imageUrl,
+                                placeholder: (context, url) => CircularProgressIndicator(),
+                                errorWidget: (context, url, error) => Icon(Icons.radio),
+                              )
                             ),
                             const SizedBox(width: 12),
                             Expanded(

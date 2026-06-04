@@ -1,30 +1,38 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Сервис для работы с аутентификацией пользователей
+/// Обеспечивает вход/регистрацию через Google и Email/пароль
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late final GoogleSignIn _googleSignIn;
 
   AuthService() {
-    _googleSignIn = GoogleSignIn();
+    _googleSignIn = GoogleSignIn(); // Инициализация Google Sign-In
   }
 
+  /// Поток состояния аутентификации (когда пользователь входит/выходит)
   Stream<User?> get user => _auth.authStateChanges();
 
   /// Вход через Google
+  /// Возвращает User если успешно, null если отменено или ошибка
   Future<User?> signInWithGoogle() async {
     try {
+      // 1. Показываем Google диалог выбора аккаунта
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      if (googleUser == null) return null; // Пользователь отменил вход
 
+      // 2. Получаем токены аутентификации
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
+      // 3. Создаем Firebase credential из токенов Google
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
+      // 4. Входим в Firebase с этими credential
       final result = await _auth.signInWithCredential(credential);
       return result.user;
     } on FirebaseAuthException catch (e) {
@@ -36,7 +44,7 @@ class AuthService {
     }
   }
 
-  /// Регистрация с email и паролем
+  /// Регистрация нового пользователя с email и паролем
   Future<User?> signUpWithEmail(String email, String password) async {
     try {
       final result = await _auth.createUserWithEmailAndPassword(
@@ -45,11 +53,11 @@ class AuthService {
       );
       return result.user;
     } on FirebaseAuthException {
-      rethrow;
+      rethrow; // Пробрасываем ошибку для обработки на UI
     }
   }
 
-  /// Вход с email и паролем
+  /// Вход существующего пользователя по email и паролю
   Future<User?> signInWithEmail(String email, String password) async {
     try {
       final result = await _auth.signInWithEmailAndPassword(
@@ -62,25 +70,21 @@ class AuthService {
     }
   }
 
-  /// Выход
+  /// Выход из аккаунта
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _auth.signOut();
+    await _googleSignIn.signOut(); // Выход из Google
+    await _auth.signOut();         // Выход из Firebase
   }
 
-  /// Понятные сообщения об ошибках
+  /// Преобразование Firebase ошибок в понятные пользователю сообщения
   static String getErrorMessage(FirebaseAuthException e) {
     switch (e.code) {
       case 'email-already-in-use':
         return 'Этот email уже зарегистрирован.';
       case 'invalid-email':
         return 'Некорректный email адрес.';
-      case 'operation-not-allowed':
-        return 'Вход по email/паролю отключён.';
       case 'weak-password':
         return 'Пароль слишком слабый. Минимум 6 символов.';
-      case 'user-disabled':
-        return 'Этот аккаунт заблокирован.';
       case 'user-not-found':
         return 'Пользователь с таким email не найден.';
       case 'wrong-password':
@@ -89,8 +93,6 @@ class AuthService {
         return 'Слишком много попыток. Попробуйте позже.';
       case 'network-request-failed':
         return 'Проблема с интернет-соединением.';
-      case 'account-exists-with-different-credential':
-        return 'Этот email уже используется через другой способ входа.';
       default:
         return 'Ошибка: ${e.message}';
     }
